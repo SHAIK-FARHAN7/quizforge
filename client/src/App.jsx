@@ -15,7 +15,7 @@ export default function App() {
     setUserAnswers({});
 
     try {
-      const res = await fetch('http://localhost:5000/api/generate-quiz', {
+      const res = await fetch('https://quizforge-backend-hnxh.onrender.com/api/generate-quiz', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: notes }),
