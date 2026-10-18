@@ -19,7 +19,7 @@ app.post('/api/generate-quiz', async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
