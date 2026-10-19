@@ -26,6 +26,84 @@ header p {
   color: #94a3b8;
 }
 
+/* Navbar */
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+}
+
+.nav-brand {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nav-link {
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.nav-link:hover {
+  background: #334155;
+}
+
+.nav-link.active {
+  background: #0369a1;
+  color: #fff;
+}
+
+/* Home and shared */
+.hero {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: #38bdf8;
+  margin-bottom: 10px;
+}
+
+.hero-text {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+}
+
+.cta-link {
+  display: inline-block;
+  background: #0284c7;
+  color: #fff;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 12px 24px;
+  border-radius: 8px;
+}
+
+.cta-link:hover {
+  background: #0369a1;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
 .card {
   background: #1e293b;
   padding: 24px;
