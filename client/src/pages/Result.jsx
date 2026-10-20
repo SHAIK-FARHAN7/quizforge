@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import usePageMeta from '../utils/usePageMeta.js';
 
 function formatDuration(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -9,6 +10,8 @@ function formatDuration(totalSeconds) {
 
 export default function Result() {
   const { id } = useParams();
+  usePageMeta('Result', 'View your test results.', true);
+
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,7 +41,6 @@ export default function Result() {
   }, [id]);
 
   const handleRetry = () => {
-    // Clear the old saved test so the retry starts fresh
     try {
       localStorage.removeItem(`quizforge_test_${result.quizId}`);
     } catch {

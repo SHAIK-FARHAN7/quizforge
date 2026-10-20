@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
+import usePageMeta from '../utils/usePageMeta.js';
 
 function formatDuration(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);
@@ -23,6 +24,8 @@ function formatDate(value) {
 }
 
 export default function History() {
+  usePageMeta('History', 'View your past test attempts.', true);
+
   const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

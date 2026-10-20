@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
+import usePageMeta from '../utils/usePageMeta.js';
 
 function loadSaved(key) {
   try {
@@ -29,6 +30,7 @@ function formatTime(totalSeconds) {
 export default function Quiz() {
   const { id } = useParams();
   const navigate = useNavigate();
+  usePageMeta('Test', 'Take your practice test.', true);
   const storageKey = `quizforge_test_${id}`;
 
   const [quiz, setQuiz] = useState(null);
@@ -65,7 +67,6 @@ export default function Quiz() {
     };
   }, [id]);
 
-  // Start the timer once the quiz is loaded (only the first time)
   useEffect(() => {
     if (quiz && !state.startedAt) {
       setState((s) => ({ ...s, startedAt: Date.now() }));
@@ -80,7 +81,6 @@ export default function Quiz() {
     }
   }, [state, storageKey]);
 
-  // Tick every second
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -129,12 +129,10 @@ export default function Quiz() {
     }
   };
 
-  // Auto-submit when time is over
   useEffect(() => {
     if (quiz && state.startedAt && secondsLeft <= 0 && !submittedRef.current) {
       submitTest();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft, quiz, state.startedAt]);
 
   if (loading) {
