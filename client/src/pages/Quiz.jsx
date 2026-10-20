@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { getDeviceId } from '../utils/deviceId.js';
 
 function loadSaved(key) {
   try {
@@ -9,22 +10,36 @@ function loadSaved(key) {
         current: saved.current || 0,
         answers: saved.answers || {},
         marked: Array.isArray(saved.marked) ? saved.marked : [],
+        startedAt: saved.startedAt || null,
       };
     }
   } catch {
     // Ignore broken or blocked storage
   }
-  return { current: 0, answers: {}, marked: [] };
+  return { current: 0, answers: {}, marked: [], startedAt: null };
+}
+
+function formatTime(totalSeconds) {
+  const safe = Math.max(0, totalSeconds);
+  const minutes = String(Math.floor(safe / 60)).padStart(2, '0');
+  const seconds = String(safe % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
 }
 
 export default function Quiz() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const storageKey = `quizforge_test_${id}`;
 
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [state, setState] = useState(() => loadSaved(storageKey));
+  const [now, setNow] = useState(() => Date.now());
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,6 +65,13 @@ export default function Quiz() {
     };
   }, [id]);
 
+  // Start the timer once the quiz is loaded (only the first time)
+  useEffect(() => {
+    if (quiz && !state.startedAt) {
+      setState((s) => ({ ...s, startedAt: Date.now() }));
+    }
+  }, [quiz, state.startedAt]);
+
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(state));
@@ -57,6 +79,63 @@ export default function Quiz() {
       // Ignore blocked storage
     }
   }, [state, storageKey]);
+
+  // Tick every second
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const timeLimit = quiz ? quiz.timeLimit : 0;
+  const elapsed = state.startedAt ? Math.floor((now - state.startedAt) / 1000) : 0;
+  const secondsLeft = quiz && state.startedAt ? timeLimit - elapsed : timeLimit;
+
+  const submitTest = async () => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    setSubmitting(true);
+    setSubmitError('');
+    setShowConfirm(false);
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizId: id,
+          deviceId: getDeviceId(),
+          answers: state.answers,
+          marked: state.marked,
+          timeTaken: Math.min(elapsed, timeLimit),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        submittedRef.current = false;
+        setSubmitError(data.error || 'Something went wrong. Please try again in a few minutes.');
+        setSubmitting(false);
+        return;
+      }
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        // Ignore blocked storage
+      }
+      navigate(`/result/${data.attemptId}`);
+    } catch {
+      submittedRef.current = false;
+      setSubmitError('Could not connect to the server. Please try again in a few minutes.');
+      setSubmitting(false);
+    }
+  };
+
+  // Auto-submit when time is over
+  useEffect(() => {
+    if (quiz && state.startedAt && secondsLeft <= 0 && !submittedRef.current) {
+      submitTest();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft, quiz, state.startedAt]);
 
   if (loading) {
     return (
@@ -82,6 +161,7 @@ export default function Quiz() {
   const question = questions[current];
   const answeredCount = Object.keys(state.answers).length;
   const markedCount = state.marked.length;
+  const unansweredCount = total - answeredCount;
   const isMarked = state.marked.includes(current);
 
   const goTo = (index) => setState((s) => ({ ...s, current: index }));
@@ -111,6 +191,11 @@ export default function Quiz() {
         <h1>{quiz.title}</h1>
         <p>Test</p>
       </header>
+
+      <div className="timer-bar">
+        <span>Time left</span>
+        <span className={`timer ${secondsLeft <= 60 ? 'low' : ''}`}>{formatTime(secondsLeft)}</span>
+      </div>
 
       <div className="card">
         <p className="muted small">Question palette</p>
@@ -164,6 +249,29 @@ export default function Quiz() {
           </button>
         </div>
       </div>
+
+      {submitError && <p className="error-text">{submitError}</p>}
+
+      <button className="submit-btn" onClick={() => setShowConfirm(true)} disabled={submitting}>
+        {submitting ? 'Submitting...' : 'Submit Test'}
+      </button>
+
+      {showConfirm && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h3>Submit your test?</h3>
+            <p className="muted">
+              You have {unansweredCount} unanswered and {markedCount} marked questions. Submit anyway?
+            </p>
+            <div className="learn-actions">
+              <button className="secondary-btn" onClick={() => setShowConfirm(false)}>
+                Keep working
+              </button>
+              <button onClick={submitTest}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
