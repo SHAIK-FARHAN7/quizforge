@@ -5,12 +5,16 @@ function loadSaved(key) {
   try {
     const saved = JSON.parse(localStorage.getItem(key));
     if (saved && typeof saved.answers === 'object') {
-      return { current: saved.current || 0, answers: saved.answers || {} };
+      return {
+        current: saved.current || 0,
+        answers: saved.answers || {},
+        marked: Array.isArray(saved.marked) ? saved.marked : [],
+      };
     }
   } catch {
     // Ignore broken or blocked storage
   }
-  return { current: 0, answers: {} };
+  return { current: 0, answers: {}, marked: [] };
 }
 
 export default function Quiz() {
@@ -77,11 +81,29 @@ export default function Quiz() {
   const current = Math.min(state.current, total - 1);
   const question = questions[current];
   const answeredCount = Object.keys(state.answers).length;
+  const markedCount = state.marked.length;
+  const isMarked = state.marked.includes(current);
 
   const goTo = (index) => setState((s) => ({ ...s, current: index }));
 
   const selectOption = (optIndex) =>
     setState((s) => ({ ...s, answers: { ...s.answers, [current]: optIndex } }));
+
+  const toggleMark = () =>
+    setState((s) => ({
+      ...s,
+      marked: s.marked.includes(current)
+        ? s.marked.filter((i) => i !== current)
+        : [...s.marked, current],
+    }));
+
+  const paletteClass = (index) => {
+    let cls = 'palette-btn';
+    if (state.marked.includes(index)) cls += ' marked';
+    else if (state.answers[index] !== undefined) cls += ' answered';
+    if (index === current) cls += ' current';
+    return cls;
+  };
 
   return (
     <>
@@ -91,8 +113,24 @@ export default function Quiz() {
       </header>
 
       <div className="card">
+        <p className="muted small">Question palette</p>
+        <div className="palette">
+          {questions.map((q, index) => (
+            <button key={index} className={paletteClass(index)} onClick={() => goTo(index)}>
+              {index + 1}
+            </button>
+          ))}
+        </div>
         <p className="muted small">
-          Question {current + 1} of {total} · {answeredCount} answered
+          <span className="legend answered"></span> Answered{' '}
+          <span className="legend marked"></span> Marked{' '}
+          <span className="legend"></span> Unanswered
+        </p>
+      </div>
+
+      <div className="card">
+        <p className="muted small">
+          Question {current + 1} of {total} · {answeredCount} answered · {markedCount} marked
         </p>
         <div className="progress-track">
           <div className="progress-fill" style={{ width: `${(answeredCount / total) * 100}%` }}></div>
@@ -117,6 +155,9 @@ export default function Quiz() {
         <div className="learn-actions">
           <button className="secondary-btn" onClick={() => goTo(current - 1)} disabled={current === 0}>
             Previous
+          </button>
+          <button className="secondary-btn" onClick={toggleMark}>
+            {isMarked ? 'Unmark review' : 'Mark for review'}
           </button>
           <button className="secondary-btn" onClick={() => goTo(current + 1)} disabled={current === total - 1}>
             Next

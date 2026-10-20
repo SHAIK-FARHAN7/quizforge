@@ -296,3 +296,50 @@ button:disabled {
 .secondary-btn {
   background: #334155;
 }
+
+
+.palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.palette-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: #475569;
+  font-size: 0.95rem;
+  border: 2px solid transparent;
+}
+
+.palette-btn.answered {
+  background: #059669;
+}
+
+.palette-btn.marked {
+  background: #ca8a04;
+}
+
+.palette-btn.current {
+  border-color: #f8fafc;
+}
+
+.legend {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #475569;
+  margin: 0 4px 0 10px;
+  vertical-align: middle;
+}
+
+.legend.answered {
+  background: #059669;
+}
+
+.legend.marked {
+  background: #ca8a04;
+}
