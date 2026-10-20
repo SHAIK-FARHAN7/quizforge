@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     const usage = await Usage.findOneAndUpdate(
       { deviceId, day },
       { $inc: { count: 1 } },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
     if (usage.count > DAILY_LIMIT_PER_DEVICE) {
       return res.status(429).json({
