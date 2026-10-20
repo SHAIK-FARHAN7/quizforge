@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import usePageMeta from '../utils/usePageMeta.js';
 
 function loadProgress(key) {
   try {
@@ -15,6 +16,7 @@ function loadProgress(key) {
 
 export default function Learn() {
   const { id } = useParams();
+  usePageMeta('Learn', 'Learn each topic step by step.', true);
   const storageKey = `quizforge_progress_${id}`;
 
   const [quiz, setQuiz] = useState(null);

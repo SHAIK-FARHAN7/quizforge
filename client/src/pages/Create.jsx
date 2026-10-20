@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
+import usePageMeta from '../utils/usePageMeta.js';
 
 const MIN_CHARS = 20;
 const MAX_CHARS = 8000;
 
 export default function Create() {
+  usePageMeta(
+    'Create a Quiz from Your Notes',
+    'Paste your study notes and get a step by step lesson and a practice quiz in seconds. Free and easy to use.'
+  );
+
   const navigate = useNavigate();
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
