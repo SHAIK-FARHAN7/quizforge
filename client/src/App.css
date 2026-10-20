@@ -222,3 +222,77 @@ button:disabled {
   margin: 12px 0;
   font-size: 0.95rem;
 }
+
+
+.topic-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.topic-tab {
+  background: #334155;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+}
+
+.topic-tab.current {
+  background: #0369a1;
+  border: 1px solid #38bdf8;
+}
+
+.topic-tab.done {
+  color: #6ee7b7;
+}
+
+.progress-track {
+  height: 8px;
+  background: #334155;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.points-list {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.info-box {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 14px 0;
+}
+
+.info-box.trick {
+  border-color: #38bdf8;
+}
+
+.term-chip {
+  display: inline-block;
+  background: #334155;
+  border-radius: 999px;
+  padding: 3px 12px;
+  margin: 2px 4px 2px 0;
+  font-size: 0.85rem;
+}
+
+.learn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.secondary-btn {
+  background: #334155;
+}
