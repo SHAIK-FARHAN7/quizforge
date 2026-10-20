@@ -418,3 +418,27 @@ button:disabled {
 .learn-actions .cta-link {
   margin-right: 10px;
 }
+
+
+.history-item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.history-item h3 {
+  margin: 0 0 4px;
+}
+
+.history-right {
+  text-align: right;
+}
+
+.history-score {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #6ee7b7;
+}
