@@ -3,26 +3,61 @@ import { useNavigate } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
 import usePageMeta from '../utils/usePageMeta.js';
 
-const MIN_CHARS = 20;
 const MAX_CHARS = 8000;
+
+const TABS = {
+  notes: {
+    label: 'Paste notes',
+    sourceType: 'notes',
+    minChars: 20,
+    title: 'Paste your notes',
+    placeholder: 'Paste your notes or syllabus topics here...',
+    rows: 10,
+  },
+  topic: {
+    label: 'Type a topic',
+    sourceType: 'topic',
+    minChars: 3,
+    title: 'Type a topic',
+    placeholder: 'Example: How does photosynthesis work?',
+    rows: 3,
+  },
+  transcript: {
+    label: 'YouTube transcript',
+    sourceType: 'transcript',
+    minChars: 20,
+    title: 'Paste a YouTube transcript',
+    placeholder: 'Open the video, click "Show transcript", copy the text and paste it here...',
+    rows: 10,
+  },
+};
 
 export default function Create() {
   usePageMeta(
     'Create a Quiz from Your Notes',
-    'Paste your study notes and get a step by step lesson and a practice quiz in seconds. Free and easy to use.'
+    'Paste your study notes, type a topic or paste a video transcript. Get a step by step lesson and a practice quiz in seconds.'
   );
 
   const navigate = useNavigate();
-  const [notes, setNotes] = useState('');
+  const [tab, setTab] = useState('notes');
+  const [texts, setTexts] = useState({ notes: '', topic: '', transcript: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const config = TABS[tab];
+  const value = texts[tab];
+
+  const switchTab = (key) => {
+    setTab(key);
+    setError('');
+  };
 
   const handleGenerate = async () => {
     setError('');
 
-    const text = notes.trim();
-    if (text.length < MIN_CHARS) {
-      setError('Please add a little more text.');
+    const text = value.trim();
+    if (text.length < config.minChars) {
+      setError(tab === 'topic' ? 'Please type a topic name.' : 'Please add a little more text.');
       return;
     }
     if (text.length > MAX_CHARS) {
@@ -37,7 +72,7 @@ export default function Create() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
-          sourceType: 'notes',
+          sourceType: config.sourceType,
           deviceId: getDeviceId(),
         }),
       });
@@ -62,22 +97,40 @@ export default function Create() {
     <>
       <header>
         <h1>Create a Quiz</h1>
-        <p>Paste your notes. We will teach you each topic and then test you.</p>
+        <p>Add your study material. We will teach you each topic and then test you.</p>
       </header>
 
+      <div className="topic-tabs">
+        {Object.entries(TABS).map(([key, t]) => (
+          <button
+            key={key}
+            className={`topic-tab ${tab === key ? 'current' : ''}`}
+            onClick={() => switchTab(key)}
+            disabled={loading}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
       <div className="card">
-        <h3>Paste your notes</h3>
+        <h3>{config.title}</h3>
         <textarea
-          rows="10"
-          placeholder="Paste your notes or syllabus topics here..."
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          rows={config.rows}
+          placeholder={config.placeholder}
+          value={value}
+          onChange={(e) => setTexts((t) => ({ ...t, [tab]: e.target.value }))}
           disabled={loading}
         ></textarea>
 
         <p className="muted small">
-          {notes.length} / {MAX_CHARS} characters
+          {value.length} / {MAX_CHARS} characters
         </p>
+        {tab === 'topic' && (
+          <p className="muted small">
+            This quiz will be made from AI knowledge, so please double-check important facts.
+          </p>
+        )}
         <p className="muted small">Please don't paste private or confidential notes.</p>
 
         {error && <p className="error-text">{error}</p>}
