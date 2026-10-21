@@ -3,6 +3,8 @@ import { connectDB } from './_lib/db.js';
 import Quiz from './_lib/Quiz.js';
 import { generateRestTopics, generateQuestions } from './_lib/gemini.js';
 
+const LOCK_SECONDS = 90;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Please use POST.' });
@@ -16,15 +18,20 @@ export default async function handler(req, res) {
 
     await connectDB();
 
-    // Lock: only one request may build this quiz (status partial -> building)
+    // Lock: only one request builds this quiz. An old lock (older than 90s) is ignored,
+    // so a cut-off request can never block the quiz forever.
+    const staleBefore = new Date(Date.now() - LOCK_SECONDS * 1000);
     const quiz = await Quiz.findOneAndUpdate(
-      { _id: id, status: 'partial', building: { $ne: true } },
-      { $set: { building: true } },
-      { returnDocument: 'after' }
+      {
+        _id: id,
+        status: 'partial',
+        $or: [{ building: { $ne: true } }, { buildStartedAt: { $lt: staleBefore } }],
+      },
+      { $set: { building: true, buildStartedAt: new Date() } },
+      { returnDocument: 'after', strict: false }
     ).lean();
 
     if (!quiz) {
-      // Already ready, or another request is building it
       return res.status(200).json({ status: 'busy-or-ready' });
     }
 
@@ -44,7 +51,6 @@ export default async function handler(req, res) {
       );
       return res.status(200).json({ status: 'ready' });
     } catch (error) {
-      // Release the lock so the user can try again
       await Quiz.updateOne({ _id: id }, { $set: { building: false } });
       throw error;
     }

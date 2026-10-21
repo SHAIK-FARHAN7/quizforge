@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     }
 
     // Hide the answers while the student is taking the test
-    const questions = quiz.questions.map((q, index) => {
+    const questions = (quiz.questions || []).map((q, index) => {
       const base = {
         index,
         topicId: q.topicId,
@@ -38,6 +38,8 @@ export default async function handler(req, res) {
     return res.status(200).json({
       id: quiz._id,
       title: quiz.title,
+      status: quiz.status || 'ready',
+      topicNames: quiz.topicNames || [],
       sourceType: quiz.sourceType,
       contentOrigin: quiz.contentOrigin,
       timeLimit: quiz.timeLimit,
