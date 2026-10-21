@@ -88,7 +88,15 @@ export default function Learn() {
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPartial, id]);
-
+  // If the build got stuck, ask again every 30 seconds
+  useEffect(() => {
+    if (!isPartial) return undefined;
+    const retry = setInterval(() => {
+      startContinue();
+    }, 30000);
+    return () => clearInterval(retry);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPartial, id]);
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(progress));
