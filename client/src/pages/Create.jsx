@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
 import usePageMeta from '../utils/usePageMeta.js';
 
-const MAX_CHARS = 8000;
+const MAX_CHARS = 50000;
 
 const TABS = {
   notes: {
@@ -67,7 +67,8 @@ export default function Create() {
 
     setLoading(true);
     try {
-     const res = await fetch('/api/generate', {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,
@@ -135,7 +136,7 @@ export default function Create() {
         {error && <p className="error-text">{error}</p>}
 
         <button onClick={handleGenerate} disabled={loading}>
-          {loading ? 'Creating your quiz... this can take up to 30 seconds' : 'Create Quiz'}
+          {loading ? 'Creating your quiz... please wait a few seconds' : 'Create Quiz'}
         </button>
       </div>
     </>
