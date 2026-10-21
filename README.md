@@ -4,6 +4,16 @@ Learn topic by topic, then test yourself. Paste your notes, type a topic, or pas
 
 **Live demo:** https://quizforge-neon-nine.vercel.app
 
+## Screenshots
+
+| Create | Learn |
+|---|---|
+| ![Create page](screenshots/create.png) | ![Learn page](screenshots/learn.png) |
+
+| Test | Result |
+|---|---|
+| ![Test page](screenshots/test.png) | ![Result page](screenshots/result.png) |
+
 ## Features
 
 - Three ways to start: paste notes, type a topic, or paste a video transcript
