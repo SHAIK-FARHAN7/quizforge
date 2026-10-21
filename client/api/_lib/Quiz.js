@@ -1,43 +1,55 @@
 import mongoose from 'mongoose';
+import { connectDB } from './_lib/db.js';
+import Quiz from './_lib/Quiz.js';
 
-const questionSchema = new mongoose.Schema({
-  topicId: { type: Number, required: true },
-  question: { type: String, required: true },
-  options: { type: [String], required: true },
-  answerIndex: { type: Number, required: true },
-  explanation: { type: String, default: '' },
-});
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Please use GET.' });
+  }
 
-const topicSchema = new mongoose.Schema({
-  topicId: { type: Number, required: true },
-  title: { type: String, required: true },
-  points: { type: [String], default: [] },
-  example: { type: String, default: '' },
-  keyTerms: { type: [String], default: [] },
-  memoryTrick: { type: String, default: '' },
-});
+  try {
+    const id = typeof req.query.id === 'string' ? req.query.id : '';
+    const withAnswers = req.query.withAnswers === '1';
 
-const quizSchema = new mongoose.Schema(
-  {
-    title: { type: String, required: true },
-    sourceType: {
-      type: String,
-      enum: ['notes', 'topic', 'transcript'],
-      default: 'notes',
-    },
-    contentOrigin: {
-      type: String,
-      enum: ['from_notes', 'from_ai_knowledge'],
-      default: 'from_notes',
-    },
-    topics: { type: [topicSchema], default: [] },
-    questions: { type: [questionSchema], default: [] },
-    timeLimit: { type: Number, default: 600 },
-    inputHash: { type: String, index: true },
-    deviceId: { type: String, index: true },
-  },
-  { timestamps: true }
-);
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ error: 'This quiz link is not valid.' });
+    }
 
-// Reuse the model if it already exists (needed for serverless functions)
-export default mongoose.models.Quiz || mongoose.model('Quiz', quizSchema);
+    await connectDB();
+
+    const quiz = await Quiz.findById(id).select('-sourceText').lean();
+    if (!quiz) {
+      return res.status(404).json({ error: 'We could not find this quiz.' });
+    }
+
+    // Hide the answers while the student is taking the test
+    const questions = quiz.questions.map((q, index) => {
+      const base = {
+        index,
+        topicId: q.topicId,
+        question: q.question,
+        options: q.options,
+      };
+      return withAnswers
+        ? { ...base, answerIndex: q.answerIndex, explanation: q.explanation }
+        : base;
+    });
+
+    return res.status(200).json({
+      id: quiz._id,
+      title: quiz.title,
+      sourceType: quiz.sourceType,
+      contentOrigin: quiz.contentOrigin,
+      timeLimit: quiz.timeLimit,
+      status: quiz.status || 'ready',
+      topicNames: quiz.topicNames || [],
+      topics: quiz.topics,
+      questions,
+    });
+  } catch (error) {
+    console.error('Quiz fetch failed:', error.message);
+    return res.status(500).json({
+      error: 'Something went wrong. Please try again in a few minutes.',
+    });
+  }
+}

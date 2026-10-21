@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { connectDB } from './_lib/db.js';
 import Quiz from './_lib/Quiz.js';
 import Usage from './_lib/Usage.js';
-import { generateTopics, generateQuestions } from './_lib/gemini.js';
+import { generateFirstTopic } from './_lib/gemini.js';
 import {
   MAX_INPUT_CHARS,
   MIN_INPUT_CHARS,
@@ -61,23 +61,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // 4. Ask Gemini (topics first, then questions)
-    const topicData = await generateTopics(text, sourceType);
-    const questions = await generateQuestions(topicData.topics);
-
-    if (!topicData.topics.length || !questions.length) {
-      return res.status(502).json({
-        error: 'Could not create the quiz. Please try again.',
-      });
+    // 4. Ask Gemini for the first topic only (fast)
+    const data = await generateFirstTopic(text, sourceType);
+    if (!data.first || !data.topicNames || !data.topicNames.length) {
+      return res.status(502).json({ error: 'Could not create the quiz. Please try again.' });
     }
 
-    // 5. Save the quiz
+    // 5. Save as partial (the rest is created by /api/continue)
     const quiz = await Quiz.create({
-      title: topicData.title,
+      title: data.title,
       sourceType,
       contentOrigin: sourceType === 'topic' ? 'from_ai_knowledge' : 'from_notes',
-      topics: topicData.topics,
-      questions,
+      topics: [data.first],
+      topicNames: data.topicNames,
+      questions: [],
+      status: 'partial',
+      sourceText: text,
       inputHash,
       deviceId,
     });

@@ -70,7 +70,6 @@ async function callGemini(prompt, schema, label = 'call') {
     } catch (error) {
       console.log(`[TIMER] ${label} failed (attempt ${attempt}):`, error.message);
 
-      // If the model does not support thinkingConfig, try again without it
       if (useThinkingConfig && /thinking/i.test(String(error.message || ''))) {
         useThinkingConfig = false;
         attempt -= 1;
@@ -92,43 +91,45 @@ async function callGemini(prompt, schema, label = 'call') {
   }
 }
 
+const topicProps = {
+  title: { type: Type.STRING },
+  points: { type: Type.ARRAY, items: { type: Type.STRING } },
+  example: { type: Type.STRING },
+  keyTerms: { type: Type.ARRAY, items: { type: Type.STRING } },
+  memoryTrick: { type: Type.STRING },
+};
+const topicRequired = ['title', 'points', 'example', 'keyTerms', 'memoryTrick'];
+
 const topicsSchema = {
   type: Type.OBJECT,
   properties: {
     title: { type: Type.STRING },
     topics: {
       type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          points: { type: Type.ARRAY, items: { type: Type.STRING } },
-          example: { type: Type.STRING },
-          keyTerms: { type: Type.ARRAY, items: { type: Type.STRING } },
-          memoryTrick: { type: Type.STRING },
-        },
-        required: ['title', 'points', 'example', 'keyTerms', 'memoryTrick'],
-      },
+      items: { type: Type.OBJECT, properties: topicProps, required: topicRequired },
     },
   },
   required: ['title', 'topics'],
 };
 
-// Breaks the study material into topics for Learn mode
-export async function generateTopics(text, sourceType) {
-  const task =
-    sourceType === 'topic'
-      ? 'The student typed only a topic name. Teach this topic using your own knowledge.'
-      : 'Teach only what is in the study material below.';
-
-  const prompt = `${task}
-Create a short quiz title and split the material into 3 to 6 topics.
-For each topic give:
+const TOPIC_FORMAT = `For each topic give:
 - title: a short topic name
 - points: 4 to 6 simple points
 - example: one easy example
 - keyTerms: 2 to 5 important terms
-- memoryTrick: one short line that helps remember the topic
+- memoryTrick: one short line that helps remember the topic`;
+
+function taskFor(sourceType) {
+  return sourceType === 'topic'
+    ? 'The student typed only a topic name. Teach this topic using your own knowledge.'
+    : 'Teach only what is in the study material below.';
+}
+
+// Old function: all topics in one call
+export async function generateTopics(text, sourceType) {
+  const prompt = `${taskFor(sourceType)}
+Create a short quiz title and split the material into 3 to 6 topics.
+${TOPIC_FORMAT}
 
 Study material:
 """
@@ -136,10 +137,67 @@ ${text}
 """`;
 
   const data = await callGemini(prompt, topicsSchema, 'topics');
-
-  // Add a number (topicId) to each topic
   data.topics = data.topics.map((topic, index) => ({ ...topic, topicId: index }));
   return data;
+}
+
+// NEW: only the first topic plus the full list of topic names (fast)
+const firstSchema = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING },
+    topicNames: { type: Type.ARRAY, items: { type: Type.STRING } },
+    first: { type: Type.OBJECT, properties: topicProps, required: topicRequired },
+  },
+  required: ['title', 'topicNames', 'first'],
+};
+
+export async function generateFirstTopic(text, sourceType) {
+  const prompt = `${taskFor(sourceType)}
+Create a short quiz title. Split the material into 3 to 6 topics and list only the topic names in order (topicNames).
+Then write the full lesson for the FIRST topic only (first).
+${TOPIC_FORMAT}
+
+Study material:
+"""
+${text}
+"""`;
+
+  const data = await callGemini(prompt, firstSchema, 'first topic');
+  return {
+    title: data.title,
+    topicNames: data.topicNames,
+    first: { ...data.first, topicId: 0 },
+  };
+}
+
+// NEW: the remaining topics, all at the same time (parallel)
+const oneTopicSchema = {
+  type: Type.OBJECT,
+  properties: topicProps,
+  required: topicRequired,
+};
+
+async function generateOneTopic(text, sourceType, name, topicId) {
+  const prompt = `${taskFor(sourceType)}
+Write the full lesson for this topic only: "${name}".
+${TOPIC_FORMAT}
+
+Study material:
+"""
+${text}
+"""`;
+
+  const data = await callGemini(prompt, oneTopicSchema, `topic ${topicId}`);
+  return { ...data, topicId };
+}
+
+export async function generateRestTopics(text, sourceType, topicNames) {
+  const jobs = topicNames
+    .map((name, index) => ({ name, index }))
+    .filter((item) => item.index > 0)
+    .map((item) => generateOneTopic(text, sourceType, item.name, item.index));
+  return Promise.all(jobs);
 }
 
 const questionsSchema = {
@@ -185,7 +243,6 @@ ${JSON.stringify(summary)}`;
 
   const data = await callGemini(prompt, questionsSchema, `questions topic ${topic.topicId}`);
 
-  // Keep only valid questions, so bad AI output never breaks the quiz
   return data.questions
     .map((q) => ({ ...q, topicId: topic.topicId }))
     .filter(

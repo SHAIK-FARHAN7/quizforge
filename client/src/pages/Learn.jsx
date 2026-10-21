@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import usePageMeta from '../utils/usePageMeta.js';
 
@@ -22,31 +22,72 @@ export default function Learn() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buildError, setBuildError] = useState('');
   const [progress, setProgress] = useState(() => loadProgress(storageKey));
+  const continueStarted = useRef(false);
 
+  const fetchQuiz = async () => {
+    const res = await fetch(`/api/quiz?id=${id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Something went wrong. Please try again in a few minutes.');
+    return data;
+  };
+
+  const startContinue = async () => {
+    setBuildError('');
+    try {
+      const res = await fetch('/api/continue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setBuildError(data.error || 'Something went wrong. Please try again in a few minutes.');
+      }
+    } catch {
+      setBuildError('Could not connect to the server. Please try again in a few minutes.');
+    }
+  };
+
+  // Load the quiz
   useEffect(() => {
     let cancelled = false;
-    async function loadQuiz() {
-      try {
-        const res = await fetch(`/api/quiz?id=${id}`);
-        const data = await res.json();
-        if (cancelled) return;
-        if (!res.ok) {
-          setError(data.error || 'Something went wrong. Please try again in a few minutes.');
-        } else {
-          setQuiz(data);
-        }
-      } catch {
-        if (!cancelled) setError('Could not connect to the server. Please try again in a few minutes.');
-      } finally {
+    fetchQuiz()
+      .then((data) => {
+        if (!cancelled) setQuiz(data);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
         if (!cancelled) setLoading(false);
-      }
-    }
-    loadQuiz();
+      });
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // If the quiz is still being built, start the build once and keep checking
+  const isPartial = quiz && quiz.status === 'partial';
+  useEffect(() => {
+    if (!isPartial) return undefined;
+    if (!continueStarted.current) {
+      continueStarted.current = true;
+      startContinue();
+    }
+    const timer = setInterval(async () => {
+      try {
+        const data = await fetchQuiz();
+        setQuiz(data);
+      } catch {
+        // Try again on the next tick
+      }
+    }, 3000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPartial, id]);
 
   useEffect(() => {
     try {
@@ -75,22 +116,22 @@ export default function Learn() {
   }
 
   const topics = quiz.topics;
-  const total = topics.length;
+  const ready = quiz.status !== 'partial';
+  const names = quiz.topicNames && quiz.topicNames.length ? quiz.topicNames : topics.map((t) => t.title);
+  const total = Math.max(names.length, topics.length);
   const current = Math.min(progress.current, total - 1);
-  const topic = topics[current];
+  const topic = topics.find((t) => t.topicId === current);
   const understood = progress.understood;
   const isDone = (topicId) => understood.includes(topicId);
-  const allDone = topics.every((t) => isDone(t.topicId));
-  const doneCount = topics.filter((t) => isDone(t.topicId)).length;
+  const doneCount = understood.filter((tid) => tid < total).length;
+  const allDone = ready && doneCount >= total;
 
   const goTo = (index) => setProgress((p) => ({ ...p, current: index }));
 
   const handleGotIt = () => {
     setProgress((p) => ({
       current: Math.min(current + 1, total - 1),
-      understood: p.understood.includes(topic.topicId)
-        ? p.understood
-        : [...p.understood, topic.topicId],
+      understood: p.understood.includes(current) ? p.understood : [...p.understood, current],
     }));
   };
 
@@ -107,15 +148,18 @@ export default function Learn() {
       </header>
 
       <div className="topic-tabs">
-        {topics.map((t, index) => (
-          <button
-            key={t.topicId}
-            className={`topic-tab ${index === current ? 'current' : ''} ${isDone(t.topicId) ? 'done' : ''}`}
-            onClick={() => goTo(index)}
-          >
-            {isDone(t.topicId) ? '✓ ' : ''}{index + 1}. {t.title}
-          </button>
-        ))}
+        {names.map((name, index) => {
+          const loaded = topics.some((t) => t.topicId === index);
+          return (
+            <button
+              key={index}
+              className={`topic-tab ${index === current ? 'current' : ''} ${isDone(index) ? 'done' : ''}`}
+              onClick={() => goTo(index)}
+            >
+              {isDone(index) ? '✓ ' : ''}{index + 1}. {name}{loaded ? '' : ' ⏳'}
+            </button>
+          );
+        })}
       </div>
 
       <div className="card">
@@ -126,39 +170,55 @@ export default function Learn() {
           <div className="progress-fill" style={{ width: `${(doneCount / total) * 100}%` }}></div>
         </div>
 
-        <h2>{topic.title}</h2>
+        {topic ? (
+          <>
+            <h2>{topic.title}</h2>
 
-        <ul className="points-list">
-          {topic.points.map((point, index) => (
-            <li key={index}>{point}</li>
-          ))}
-        </ul>
+            <ul className="points-list">
+              {topic.points.map((point, index) => (
+                <li key={index}>{point}</li>
+              ))}
+            </ul>
 
-        <div className="info-box">
-          <b>Example:</b> {topic.example}
-        </div>
+            <div className="info-box">
+              <b>Example:</b> {topic.example}
+            </div>
 
-        <p>
-          <b>Key terms:</b>{' '}
-          {topic.keyTerms.map((term) => (
-            <span key={term} className="term-chip">{term}</span>
-          ))}
-        </p>
+            <p>
+              <b>Key terms:</b>{' '}
+              {topic.keyTerms.map((term) => (
+                <span key={term} className="term-chip">{term}</span>
+              ))}
+            </p>
 
-        <div className="info-box trick">
-          <b>Memory trick:</b> {topic.memoryTrick}
-        </div>
+            <div className="info-box trick">
+              <b>Memory trick:</b> {topic.memoryTrick}
+            </div>
+          </>
+        ) : (
+          <>
+            <h2>{names[current]}</h2>
+            <p className="muted">Loading this topic...</p>
+          </>
+        )}
 
         <div className="learn-actions">
           <button className="secondary-btn" onClick={() => goTo(current - 1)} disabled={current === 0}>
             Previous
           </button>
-          <button onClick={handleGotIt}>Got it</button>
+          <button onClick={handleGotIt} disabled={!topic}>Got it</button>
           <button className="secondary-btn" onClick={() => goTo(current + 1)} disabled={current === total - 1}>
             Next
           </button>
         </div>
       </div>
+
+      {buildError && (
+        <div className="card">
+          <p className="error-text">{buildError}</p>
+          <button onClick={startContinue}>Try again</button>
+        </div>
+      )}
 
       <div className="card">
         {allDone ? (
@@ -171,7 +231,9 @@ export default function Learn() {
           <>
             <h3>Test locked 🔒</h3>
             <p className="muted">
-              Finish all {total} topics to unlock the test. {total - doneCount} left.
+              {ready
+                ? `Finish all ${total} topics to unlock the test. ${total - doneCount} left.`
+                : 'We are still preparing the rest of your lesson and the test. Keep reading!'}
             </p>
           </>
         )}
