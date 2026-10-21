@@ -27,6 +27,13 @@ function formatTime(totalSeconds) {
   return `${minutes}:${seconds}`;
 }
 
+// Quiz is ready only when it has questions and is not still being built
+function isQuizReady(quiz) {
+  if (!quiz) return false;
+  if (quiz.status === 'building') return false;
+  return Array.isArray(quiz.questions) && quiz.questions.length > 0;
+}
+
 export default function Quiz() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,8 +50,13 @@ export default function Quiz() {
   const [submitError, setSubmitError] = useState('');
   const submittedRef = useRef(false);
 
+  const ready = isQuizReady(quiz);
+
+  // Load the quiz, and keep checking every 4 seconds until it is ready
   useEffect(() => {
     let cancelled = false;
+    let timer = null;
+
     async function loadQuiz() {
       try {
         const res = await fetch(`/api/quiz?id=${id}`);
@@ -52,26 +64,35 @@ export default function Quiz() {
         if (cancelled) return;
         if (!res.ok) {
           setError(data.error || 'Something went wrong. Please try again in a few minutes.');
-        } else {
-          setQuiz(data);
+          setLoading(false);
+          return;
+        }
+        setQuiz(data);
+        setLoading(false);
+        if (!isQuizReady(data)) {
+          timer = setTimeout(loadQuiz, 4000);
         }
       } catch {
-        if (!cancelled) setError('Could not connect to the server. Please try again in a few minutes.');
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setError('Could not connect to the server. Please try again in a few minutes.');
+          setLoading(false);
+        }
       }
     }
+
     loadQuiz();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, [id]);
 
+  // Start the timer only when the quiz is fully ready
   useEffect(() => {
-    if (quiz && !state.startedAt) {
+    if (ready && !state.startedAt) {
       setState((s) => ({ ...s, startedAt: Date.now() }));
     }
-  }, [quiz, state.startedAt]);
+  }, [ready, state.startedAt]);
 
   useEffect(() => {
     try {
@@ -86,9 +107,9 @@ export default function Quiz() {
     return () => clearInterval(timer);
   }, []);
 
-  const timeLimit = quiz ? quiz.timeLimit : 0;
+  const timeLimit = quiz && quiz.timeLimit ? quiz.timeLimit : 0;
   const elapsed = state.startedAt ? Math.floor((now - state.startedAt) / 1000) : 0;
-  const secondsLeft = quiz && state.startedAt ? timeLimit - elapsed : timeLimit;
+  const secondsLeft = ready && state.startedAt ? timeLimit - elapsed : timeLimit;
 
   const submitTest = async () => {
     if (submittedRef.current) return;
@@ -130,10 +151,10 @@ export default function Quiz() {
   };
 
   useEffect(() => {
-    if (quiz && state.startedAt && secondsLeft <= 0 && !submittedRef.current) {
+    if (ready && state.startedAt && timeLimit > 0 && secondsLeft <= 0 && !submittedRef.current) {
       submitTest();
     }
-  }, [secondsLeft, quiz, state.startedAt]);
+  }, [secondsLeft, ready, state.startedAt]);
 
   if (loading) {
     return (
@@ -153,10 +174,29 @@ export default function Quiz() {
     );
   }
 
+  if (!ready) {
+    return (
+      <div className="card">
+        <h2>{quiz.title || 'Your test'}</h2>
+        <p className="muted">Your questions are still being made... This page will update by itself.</p>
+        <Link to={`/learn/${id}`} className="cta-link">Back to learning</Link>
+      </div>
+    );
+  }
+
   const questions = quiz.questions;
   const total = questions.length;
-  const current = Math.min(state.current, total - 1);
+  const current = Math.max(0, Math.min(state.current, total - 1));
   const question = questions[current];
+
+  if (!question) {
+    return (
+      <div className="card">
+        <p className="muted">Loading your test...</p>
+      </div>
+    );
+  }
+
   const answeredCount = Object.keys(state.answers).length;
   const markedCount = state.marked.length;
   const unansweredCount = total - answeredCount;
@@ -224,7 +264,7 @@ export default function Quiz() {
         </p>
 
         <div className="options-grid">
-          {question.options.map((option, optIndex) => (
+          {(question.options || []).map((option, optIndex) => (
             <button
               key={optIndex}
               className={`option-btn ${state.answers[current] === optIndex ? 'selected' : ''}`}
