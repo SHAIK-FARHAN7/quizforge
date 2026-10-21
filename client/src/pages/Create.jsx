@@ -67,8 +67,7 @@ export default function Create() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
+     const res = await fetch('/api/generate', {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text,

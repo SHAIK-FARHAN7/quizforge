@@ -41,11 +41,16 @@ app.post('/api/generate-quiz', async (req, res) => {
       }
     });
 
-    const prompt = `You are an expert tutor. Analyze the following study material and generate multiple-choice practice questions.
-    Study Material:
-    ${text}`;
+    const prompt = `You are an expert tutor. Generate exactly 10 multiple-choice questions from the study material below.
+Each question must have 4 options. Keep every explanation to 1 short sentence.
 
+Study Material:
+${text}`;
+
+    const start = Date.now();
     const result = await model.generateContent(prompt);
+    console.log("Time:", (Date.now() - start) / 1000, "seconds");
+
     const response = await result.response;
     const quizData = JSON.parse(response.text());
     
