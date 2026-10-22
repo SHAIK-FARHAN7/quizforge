@@ -38,6 +38,8 @@ const quizSchema = new mongoose.Schema(
     status: { type: String, enum: ['ready', 'partial'], default: 'ready' },
     // Lock used by /api/continue so only one request builds the quiz
     building: { type: Boolean, default: false },
+        // When the current build started, so an old stuck lock can be ignored
+    buildStartedAt: { type: Date, default: null },
     // Original text, kept only while the quiz is partial
     sourceText: { type: String, default: '' },
     timeLimit: { type: Number, default: 600 },
