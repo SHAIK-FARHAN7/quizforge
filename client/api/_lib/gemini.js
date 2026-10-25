@@ -73,10 +73,10 @@ async function callGemini(prompt, schema, label = 'call') {
       console.log(`[TIMER] ${label} failed (${model}, attempt ${attempt}):`, error.message);
 
       // If the model does not support thinkingConfig, try again without it
-      if (useThinkingConfig && /thinking/i.test(String(error.message || ''))) {
+
         useThinkingConfig = false;
         attempt -= 1;
-        continue;
+        continue;           if (useThinkingConfig && /thinking/i.test(String(error.message || ''))) {
       }
 
       // Bad JSON from the AI: just try again
