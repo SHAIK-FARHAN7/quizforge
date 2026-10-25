@@ -93,7 +93,7 @@ export default function Learn() {
     if (!isPartial) return undefined;
     const retry = setInterval(() => {
       startContinue();
-    }, 30000);
+    },8000);
     return () => clearInterval(retry);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPartial, id]);
