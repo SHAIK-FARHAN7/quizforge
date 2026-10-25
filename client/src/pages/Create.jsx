@@ -67,17 +67,34 @@ export default function Create() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text,
-          sourceType: config.sourceType,
-          deviceId: getDeviceId(),
-        }),
-      });
+        const sendRequest = async () => {
+        const r = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            sourceType: config.sourceType,
+            deviceId: getDeviceId(),
+          }),
+        });
+        let d = {};
+        try {
+          d = await r.json();
+        } catch {
+          // Server did not return JSON
+        }
+        return { r, d };
+      };
 
-      const data = await res.json();
+      let { r: res, d: data } = await sendRequest();
+
+      // If the AI is busy, wait a little and try again (up to 2 more times)
+      for (let i = 0; i < 2 && (res.status === 429 || res.status >= 500); i++) {
+        // Do not retry when the daily limit is reached
+        if (data.error && data.error.includes('limit')) break;
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        ({ r: res, d: data } = await sendRequest());
+      }
 
       if (!res.ok) {
         setError(data.error || 'Something went wrong. Please try again in a few minutes.');
