@@ -63,7 +63,6 @@ export default async function handler(req, res) {
     console.error('Continue failed:', error.message);
     return res.status(500).json({
       error: 'Something went wrong. Please try again in a few minutes.',
-      debug: String(error.message || '').slice(0, 300),
-    });
+        });
   }
 }
