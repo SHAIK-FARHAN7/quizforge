@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     const items = quizzes.map((q) => ({
       id: q._id,
-      id: q._id,
+      quizId: q._id,
       title: q.title,
       sourceType: q.sourceType,
       contentOrigin: q.contentOrigin,
