@@ -175,6 +175,10 @@ button:disabled {
   padding: 44px 0 60px;
 }
 
+.route-transition {
+  will-change: opacity, transform;
+}
+
 header {
   margin-bottom: 30px;
   text-align: center;
