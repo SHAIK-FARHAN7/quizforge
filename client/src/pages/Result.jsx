@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import usePageMeta from '../utils/usePageMeta.js';
 
 function formatDuration(totalSeconds) {
@@ -15,6 +16,22 @@ export default function Result() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const confettiFired = useRef(false);
+
+  useEffect(() => {
+    if (!result || result.total <= 0 || result.score / result.total < 0.7 || confettiFired.current) {
+      return;
+    }
+
+    confettiFired.current = true;
+    confetti({
+      particleCount: 80,
+      spread: 60,
+      startVelocity: 32,
+      ticks: 140,
+      origin: { y: 0.65 },
+    });
+  }, [result]);
 
   useEffect(() => {
     let cancelled = false;

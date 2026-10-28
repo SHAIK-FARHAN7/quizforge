@@ -155,7 +155,16 @@ export default function Learn() {
         <p>{originLabel}. AI can make mistakes, so please double-check important facts.</p>
       </header>
 
-      <div className="topic-tabs">
+      <div
+        className="topic-tabs"
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          justifyContent: 'center',
+          padding: '0.25rem 0.5rem 1rem',
+        }}
+      >
         {names.map((name, index) => {
           const loaded = topics.some((t) => t.topicId === index);
           return (
