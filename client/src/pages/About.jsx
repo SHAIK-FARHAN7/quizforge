@@ -41,6 +41,33 @@ export default function About() {
         </ul>
         <Link to="/create" className="cta-link">Create a Quiz</Link>
       </div>
+
+      <div className="card built-by">
+        <h3>Built by</h3>
+        <p><b>Shaik Farhan</b></p>
+        <p className="muted">
+          Student developer building free, simple tools that help students learn faster.
+          QuizForge started as a personal project and is made to be fast, free and easy to use.
+        </p>
+        <p>
+          <a
+            href="https://www.linkedin.com/in/shaik-farhan-ba174a37a"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-link"
+          >
+            LinkedIn
+          </a>{' '}
+          <a
+            href="https://github.com/SHAIK-FARHAN7"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cta-link"
+          >
+            GitHub
+          </a>
+        </p>
+      </div>
     </>
   );
 }
