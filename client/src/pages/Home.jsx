@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -41,26 +41,51 @@ const steps = [
 ];
 
 export default function Home() {
+  const shouldReduceMotion = useReducedMotion();
+
   usePageMeta(
     'Learn Topic by Topic, Then Take a Quiz',
     'Paste your notes and QuizForge teaches you each topic step by step. Then test yourself with a practice quiz made just for you.'
   );
 
+  const fadeUp = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 28 },
+    visible: { opacity: 1, y: 0 },
+  };
+
+  const staggerContainer = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: shouldReduceMotion ? 0 : 0.12,
+        delayChildren: shouldReduceMotion ? 0 : 0.08,
+      },
+    },
+  };
+
+  const itemReveal = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 22 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
     <main className="qf-home">
       <motion.section
         className="qf-hero"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.65, ease: 'easeOut' }}
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        transition={{ duration: shouldReduceMotion ? 0.01 : 0.65, ease: 'easeOut' }}
       >
         <div className="qf-hero-copy">
           <span className="qf-eyebrow"><Sparkles size={15} /> YOUR NOTES, MADE USEFUL</span>
           <h1>Study with a plan.<br /><span>Remember more.</span></h1>
           <p>Turn your notes into a clear study path, practice questions, and progress you can see.</p>
-          <Link to="/create" className="qf-button">
-            Create a Quiz <ArrowUpRight size={18} />
-          </Link>
+          <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+            <Link to="/create" className="qf-button">
+              Create a Quiz <ArrowUpRight size={18} />
+            </Link>
+          </motion.div>
           <div className="qf-hero-note">
             <span className="qf-note-mark"><BrainCircuit size={17} /></span>
             <span>One topic at a time. One step closer.</span>
@@ -81,24 +106,31 @@ export default function Home() {
 
       <motion.section
         className="qf-section qf-features"
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
+        variants={fadeUp}
+        transition={{ duration: shouldReduceMotion ? 0.01 : 0.55, ease: 'easeOut' }}
       >
         <div className="qf-section-heading">
           <span className="qf-eyebrow">A BETTER WAY TO PRACTICE</span>
           <h2>Make every study session count.</h2>
         </div>
-        <div className="qf-feature-grid">
-          {features.map(({ icon: Icon, title, description, tone }, index) => (
+        <motion.div
+          className="qf-feature-grid"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          {features.map(({ icon: Icon, title, description, tone }) => (
             <motion.article
               className={`qf-feature-card qf-tone-${tone}`}
               key={title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
-              transition={{ duration: 0.45, delay: index * 0.1, ease: 'easeOut' }}
+              variants={itemReveal}
+              whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.01 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: shouldReduceMotion ? 0.01 : 0.4, ease: 'easeOut' }}
             >
               <span className="qf-feature-icon"><Icon size={21} strokeWidth={1.8} /></span>
               <h3>{title}</h3>
@@ -106,53 +138,63 @@ export default function Home() {
               <span className="qf-feature-arrow"><ArrowUpRight size={17} /></span>
             </motion.article>
           ))}
-        </div>
+        </motion.div>
       </motion.section>
 
       <motion.section
         className="qf-section qf-how"
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
+        variants={fadeUp}
+        transition={{ duration: shouldReduceMotion ? 0.01 : 0.55, ease: 'easeOut' }}
       >
         <div className="qf-section-heading qf-how-heading">
           <span className="qf-eyebrow">SIMPLE FROM THE START</span>
           <h2>How it works</h2>
           <p>Go from notes to a focused study session in four easy steps.</p>
         </div>
-        <div className="qf-steps">
-          {steps.map(({ number, title, description }, index) => (
+        <motion.div
+          className="qf-steps"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          {steps.map(({ number, title, description }) => (
             <motion.article
               className="qf-step"
               key={number}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.4, delay: index * 0.09, ease: 'easeOut' }}
+              variants={itemReveal}
+              whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: shouldReduceMotion ? 0.01 : 0.35, ease: 'easeOut' }}
             >
               <span className="qf-step-number">{number}</span>
               <h3>{title}</h3>
               <p>{description}</p>
             </motion.article>
           ))}
-        </div>
+        </motion.div>
       </motion.section>
 
       <motion.section
         className="qf-final-cta"
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        variants={fadeUp}
+        transition={{ duration: shouldReduceMotion ? 0.01 : 0.5, ease: 'easeOut' }}
       >
         <div>
           <span className="qf-eyebrow">READY WHEN YOU ARE</span>
           <h2>Your next good study session starts here.</h2>
         </div>
-        <Link to="/create" className="qf-button qf-button-light">
-          Create a Quiz <ArrowUpRight size={18} />
-        </Link>
+        <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+          <Link to="/create" className="qf-button qf-button-light">
+            Create a Quiz <ArrowUpRight size={18} />
+          </Link>
+        </motion.div>
       </motion.section>
     </main>
   );

@@ -704,6 +704,20 @@ textarea:focus {
   font-size: 0.95rem;
   font-weight: 500;
   text-decoration: none;
+  box-shadow: 0 10px 26px rgba(44, 52, 128, 0.16);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
+}
+
+.qf-button:hover,
+.qf-button:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(122, 162, 255, 0.72);
+  background: rgba(122, 162, 255, 0.25);
+  box-shadow: 0 18px 38px rgba(44, 52, 128, 0.28), 0 0 0 1px rgba(122, 162, 255, 0.2);
+}
+
+.qf-button:active {
+  transform: scale(0.97);
 }
 
 .qf-hero-note {
@@ -904,12 +918,22 @@ textarea:focus {
   position: relative;
   min-height: 196px;
   padding: 23px;
-  transition: transform 180ms ease, background-color 180ms ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(10, 15, 32, 0.72);
+  box-shadow: 0 16px 32px rgba(2, 6, 23, 0.15);
+  transition: transform 220ms ease, background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .qf-feature-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-6px);
+  border-color: rgba(122, 162, 255, 0.2);
   background: var(--color-surface-hover);
+  box-shadow: 0 22px 46px rgba(44, 52, 128, 0.18), 0 0 0 1px rgba(122, 162, 255, 0.1);
+}
+
+.qf-feature-card:active {
+  transform: scale(0.985);
 }
 
 .qf-feature-icon {
@@ -977,6 +1001,16 @@ textarea:focus {
   position: relative;
   padding-top: 17px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.qf-step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 28px rgba(44, 52, 128, 0.12);
+}
+
+.qf-step:active {
+  transform: scale(0.985);
 }
 
 .qf-step-number {
@@ -1004,6 +1038,21 @@ textarea:focus {
 
 .qf-button-light {
   flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 800px) {
