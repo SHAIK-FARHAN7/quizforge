@@ -106,7 +106,7 @@ p {
 }
 
 a {
-  color: var(--color-accent);
+  color: var(--color-highlight);
   transition: color 180ms ease, opacity 180ms ease;
 }
 
@@ -220,7 +220,7 @@ header p,
 }
 
 .nav-brand:hover {
-  color: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .nav-links {
@@ -544,7 +544,7 @@ textarea:focus {
 }
 
 .timer {
-  color: var(--color-accent);
+  color: var(--color-highlight);
   font-size: 1.25rem;
   font-weight: 600;
 }
@@ -585,7 +585,7 @@ textarea:focus {
 
 .inline-link {
   margin-left: 8px;
-  color: var(--color-accent);
+  color: var(--color-highlight);
   font-size: 0.9rem;
 }
 
@@ -621,7 +621,7 @@ textarea:focus {
   --qf-ink: var(--color-text);
   --qf-muted: var(--color-muted);
   --qf-line: var(--color-border);
-  --qf-lime: var(--color-accent);
+  --qf-lime: var(--color-highlight);
   width: min(100%, 1120px);
   max-width: 100%;
   margin: 0 auto;
@@ -765,7 +765,7 @@ textarea:focus {
   place-items: center;
   border-radius: 12px;
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .qf-preview-title strong,
@@ -839,7 +839,7 @@ textarea:focus {
   place-items: center;
   border-radius: 10px;
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .qf-preview-footer {
@@ -920,7 +920,7 @@ textarea:focus {
   border: 1px solid rgba(122, 162, 255, 0.32);
   border-radius: 12px;
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .qf-tone-mint .qf-feature-icon,
@@ -928,7 +928,7 @@ textarea:focus {
 .qf-tone-coral .qf-feature-icon {
   border-color: rgba(122, 162, 255, 0.32);
   background: var(--color-accent-soft);
-  color: var(--color-accent);
+  color: var(--color-highlight);
 }
 
 .qf-feature-card h3,
