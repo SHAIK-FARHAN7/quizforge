@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar.jsx';
+import Footer from './components/Footer.jsx';
 import Home from './pages/Home.jsx';
 import Create from './pages/Create.jsx';
 import Quizzes from './pages/Quizzes.jsx';
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
+      <Footer />
     </>
   );
 }
