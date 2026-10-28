@@ -117,45 +117,57 @@ export default function Create() {
         <p>Add your study material. We will teach you each topic and then test you.</p>
       </header>
 
-      <div className="topic-tabs">
-        {Object.entries(TABS).map(([key, t]) => (
-          <button
-            key={key}
-            className={`topic-tab ${tab === key ? 'current' : ''}`}
-            onClick={() => switchTab(key)}
-            disabled={loading}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <section className="card create-loading-card" role="status" aria-live="polite" aria-label="Creating your quiz">
+          <ul className="create-loading-steps">
+            <li className="create-loading-step">Reading your notes</li>
+            <li className="create-loading-step">Building lessons</li>
+            <li className="create-loading-step">Preparing your test</li>
+          </ul>
+        </section>
+      ) : (
+        <>
+          <div className="topic-tabs">
+            {Object.entries(TABS).map(([key, t]) => (
+              <button
+                key={key}
+                className={`topic-tab ${tab === key ? 'current' : ''}`}
+                onClick={() => switchTab(key)}
+                disabled={loading}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-      <div className="card">
-        <h3>{config.title}</h3>
-        <textarea
-          rows={config.rows}
-          placeholder={config.placeholder}
-          value={value}
-          onChange={(e) => setTexts((t) => ({ ...t, [tab]: e.target.value }))}
-          disabled={loading}
-        ></textarea>
+          <div className="card">
+            <h3>{config.title}</h3>
+            <textarea
+              rows={config.rows}
+              placeholder={config.placeholder}
+              value={value}
+              onChange={(e) => setTexts((t) => ({ ...t, [tab]: e.target.value }))}
+              disabled={loading}
+            ></textarea>
 
-        <p className="muted small">
-          {value.length} / {MAX_CHARS} characters
-        </p>
-        {tab === 'topic' && (
-          <p className="muted small">
-            This quiz will be made from AI knowledge, so please double-check important facts.
-          </p>
-        )}
-        <p className="muted small">Please don't paste private or confidential notes.</p>
+            <p className="muted small">
+              {value.length} / {MAX_CHARS} characters
+            </p>
+            {tab === 'topic' && (
+              <p className="muted small">
+                This quiz will be made from AI knowledge, so please double-check important facts.
+              </p>
+            )}
+            <p className="muted small">Please don't paste private or confidential notes.</p>
 
-        {error && <p className="error-text">{error}</p>}
+            {error && <p className="error-text">{error}</p>}
 
-        <button onClick={handleGenerate} disabled={loading}>
-          {loading ? 'Creating your quiz... please wait a few seconds' : 'Create Quiz'}
-        </button>
-      </div>
+            <button onClick={handleGenerate} disabled={loading}>
+              {loading ? 'Creating your quiz... please wait a few seconds' : 'Create Quiz'}
+            </button>
+          </div>
+        </>
+      )}
     </>
   );
 }
