@@ -1,35 +1,26 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BookOpenCheck,
-  BrainCircuit,
-  FileText,
-  Sparkles,
-  Target,
-  Timer,
-} from 'lucide-react';
+import { ArrowUpRight, Asterisk, BookOpenCheck, Target, Timer } from 'lucide-react';
 import usePageMeta from '../utils/usePageMeta.js';
 
 const features = [
   {
+    number: '01',
     icon: BookOpenCheck,
     title: 'Learn topic by topic',
     description: 'Break your notes into clear topics and learn each one at your own pace.',
-    tone: 'mint',
   },
   {
+    number: '02',
     icon: Timer,
-    title: 'Take a timed test',
+    title: 'Timed test',
     description: 'Put your knowledge to the test and get comfortable working against the clock.',
-    tone: 'amber',
   },
   {
+    number: '03',
     icon: Target,
-    title: 'Review weak topics',
+    title: 'Weak topic review',
     description: 'See what needs more work and focus your next study session where it counts.',
-    tone: 'coral',
   },
 ];
 
@@ -40,6 +31,10 @@ const steps = [
   { number: '04', title: 'Get better', description: 'Review your results and revisit tricky topics.' },
 ];
 
+function RedStar({ className = '' }) {
+  return <Asterisk className={`qf-ed-star ${className}`} aria-hidden="true" strokeWidth={2.5} />;
+}
+
 export default function Home() {
   usePageMeta(
     'Learn Topic by Topic, Then Take a Quiz',
@@ -47,112 +42,127 @@ export default function Home() {
   );
 
   return (
-    <main className="qf-home">
-      <motion.section
-        className="qf-hero"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.65, ease: 'easeOut' }}
-      >
-        <div className="qf-hero-copy">
-          <span className="qf-eyebrow"><Sparkles size={15} /> YOUR NOTES, MADE USEFUL</span>
-          <h1>Study with a plan.<br /><span>Remember more.</span></h1>
-          <p>Turn your notes into a clear study path, practice questions, and progress you can see.</p>
-          <Link to="/create" className="qf-button">
-            Create a Quiz <ArrowUpRight size={18} />
+    <main className="qf-home qf-editorial">
+      <section className="qf-ed-hero" aria-labelledby="qf-home-title">
+        <div className="qf-ed-corners">
+          <span>LEARN</span>
+          <span>QUIZFORGE / 001</span>
+          <span>TEST</span>
+        </div>
+        <div className="qf-ed-word-wrap">
+          <h1 id="qf-home-title" className="qf-ed-word">
+            <motion.span
+              initial={{ y: '110%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
+            >
+              QUIZFORGE
+            </motion.span>
+          </h1>
+        </div>
+        <motion.div
+          className="qf-ed-hero-bottom"
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.55, ease: 'easeOut' }}
+        >
+          <RedStar />
+          <p>Learn first.<br />Then test yourself.</p>
+          <Link to="/create" className="qf-ed-round-link">
+            <span>Create a Quiz</span>
+            <ArrowUpRight size={22} strokeWidth={1.8} />
           </Link>
-          <div className="qf-hero-note">
-            <span className="qf-note-mark"><BrainCircuit size={17} /></span>
-            <span>One topic at a time. One step closer.</span>
-          </div>
+        </motion.div>
+        <div className="qf-ed-hero-footnote">
+          <span>YOUR NOTES, WITH A GAME PLAN</span>
+          <span>SCROLL TO EXPLORE ↓</span>
         </div>
+      </section>
 
-        <div className="qf-study-preview" aria-hidden="true">
-          <div className="qf-preview-topline"><span>STUDY SESSION</span><span className="qf-live-dot" /></div>
-          <div className="qf-preview-title"><span className="qf-preview-icon"><FileText size={18} /></span><div><strong>Cell biology</strong><small>4 topics to explore</small></div></div>
-          <div className="qf-preview-progress"><span /><span /><span /><span /></div>
-          <div className="qf-preview-label">UP NEXT</div>
-          <div className="qf-preview-topic"><span className="qf-topic-check"><BookOpenCheck size={16} /></span><span><strong>Cell structure</strong><small>Topic 2 of 4</small></span><ArrowRight size={17} /></div>
-          <div className="qf-preview-footer"><span>YOUR PROGRESS</span><strong>2 of 4 topics</strong></div>
+      <div className="qf-ed-marquee" aria-label="Learn, test, improve">
+        <div className="qf-ed-marquee-track" aria-hidden="true">
+          <span>LEARN <b>✳</b> TEST <b>✳</b> IMPROVE <b>✳</b>&nbsp;</span>
+          <span>LEARN <b>✳</b> TEST <b>✳</b> IMPROVE <b>✳</b>&nbsp;</span>
         </div>
-        <div className="qf-hero-orbit qf-orbit-one" aria-hidden="true" />
-        <div className="qf-hero-orbit qf-orbit-two" aria-hidden="true" />
-      </motion.section>
+      </div>
 
       <motion.section
-        className="qf-section qf-features"
-        initial={{ opacity: 0, y: 28 }}
+        className="qf-ed-section qf-ed-features"
+        initial={{ opacity: 0, y: 35 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 0.55, ease: 'easeOut' }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
       >
-        <div className="qf-section-heading">
-          <span className="qf-eyebrow">A BETTER WAY TO PRACTICE</span>
-          <h2>Make every study session count.</h2>
+        <div className="qf-ed-section-heading">
+          <span className="qf-ed-kicker"><RedStar /> A STUDY SYSTEM THAT MOVES WITH YOU</span>
+          <h2>Make every session<br /><span>count.</span></h2>
         </div>
-        <div className="qf-feature-grid">
-          {features.map(({ icon: Icon, title, description, tone }, index) => (
+        <div className="qf-ed-feature-list">
+          {features.map(({ number, icon: Icon, title, description }, index) => (
             <motion.article
-              className={`qf-feature-card qf-tone-${tone}`}
-              key={title}
-              initial={{ opacity: 0, y: 20 }}
+              className="qf-ed-feature"
+              key={number}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.25 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.45, delay: index * 0.1, ease: 'easeOut' }}
             >
-              <span className="qf-feature-icon"><Icon size={21} strokeWidth={1.8} /></span>
-              <h3>{title}</h3>
+              <span className="qf-ed-feature-number">{number}</span>
+              <div className="qf-ed-feature-title">
+                <Icon size={24} strokeWidth={1.6} aria-hidden="true" />
+                <h3>{title}</h3>
+              </div>
               <p>{description}</p>
-              <span className="qf-feature-arrow"><ArrowUpRight size={17} /></span>
+              <ArrowUpRight className="qf-ed-feature-arrow" size={23} strokeWidth={1.6} aria-hidden="true" />
             </motion.article>
           ))}
         </div>
       </motion.section>
 
       <motion.section
-        className="qf-section qf-how"
+        className="qf-ed-section qf-ed-how"
+        initial={{ opacity: 0, y: 35 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+      >
+        <div className="qf-ed-how-heading">
+          <span className="qf-ed-kicker">NO FUSS. JUST PROGRESS.</span>
+          <h2>How it works<span className="qf-ed-period">.</span></h2>
+          <RedStar />
+        </div>
+        <div className="qf-ed-steps">
+          {steps.map(({ number, title, description }, index) => (
+            <motion.article
+              className="qf-ed-step"
+              key={number}
+              initial={{ opacity: 0, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.4, delay: index * 0.09, ease: 'easeOut' }}
+            >
+              <span className="qf-ed-step-number">{number}</span>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </motion.article>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="qf-ed-cta"
         initial={{ opacity: 0, y: 28 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 0.55, ease: 'easeOut' }}
       >
-        <div className="qf-section-heading qf-how-heading">
-          <span className="qf-eyebrow">SIMPLE FROM THE START</span>
-          <h2>How it works</h2>
-          <p>Go from notes to a focused study session in four easy steps.</p>
-        </div>
-        <div className="qf-steps">
-          {steps.map(({ number, title, description }, index) => (
-            <motion.article
-              className="qf-step"
-              key={number}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.4, delay: index * 0.09, ease: 'easeOut' }}
-            >
-              <span className="qf-step-number">{number}</span>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </motion.article>
-          ))}
-        </div>
-      </motion.section>
-
-      <motion.section
-        className="qf-final-cta"
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-      >
-        <div>
-          <span className="qf-eyebrow">READY WHEN YOU ARE</span>
-          <h2>Your next good study session starts here.</h2>
-        </div>
-        <Link to="/create" className="qf-button qf-button-light">
-          Create a Quiz <ArrowUpRight size={18} />
+        <span className="qf-ed-kicker">READY WHEN YOU ARE <RedStar /></span>
+        <h2>Make your next<br />study session <span>count.</span></h2>
+        <Link to="/create" className="qf-ed-round-link qf-ed-cta-link">
+          <span>Create a Quiz</span>
+          <ArrowUpRight size={22} strokeWidth={1.8} />
         </Link>
+        <span className="qf-ed-cta-stamp" aria-hidden="true">START<br />HERE</span>
       </motion.section>
     </main>
   );
