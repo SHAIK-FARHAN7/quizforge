@@ -73,7 +73,8 @@ export default function Home() {
       <motion.section
         className="qf-hero"
         initial="hidden"
-        animate="visible"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
         variants={fadeUp}
         transition={{ duration: shouldReduceMotion ? 0.01 : 0.65, ease: 'easeOut' }}
       >
@@ -81,7 +82,7 @@ export default function Home() {
           <span className="qf-eyebrow"><Sparkles size={15} /> YOUR NOTES, MADE USEFUL</span>
           <h1>Study with a plan.<br /><span>Remember more.</span></h1>
           <p>Turn your notes into a clear study path, practice questions, and progress you can see.</p>
-          <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+          <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}>
             <Link to="/create" className="qf-button">
               Create a Quiz <ArrowUpRight size={18} />
             </Link>
@@ -129,7 +130,7 @@ export default function Home() {
               key={title}
               variants={itemReveal}
               whileHover={shouldReduceMotion ? undefined : { y: -6, scale: 1.01 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
               transition={{ duration: shouldReduceMotion ? 0.01 : 0.4, ease: 'easeOut' }}
             >
               <span className="qf-feature-icon"><Icon size={21} strokeWidth={1.8} /></span>
@@ -167,7 +168,7 @@ export default function Home() {
               key={number}
               variants={itemReveal}
               whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
               transition={{ duration: shouldReduceMotion ? 0.01 : 0.35, ease: 'easeOut' }}
             >
               <span className="qf-step-number">{number}</span>
@@ -190,7 +191,7 @@ export default function Home() {
           <span className="qf-eyebrow">READY WHEN YOU ARE</span>
           <h2>Your next good study session starts here.</h2>
         </div>
-        <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={{ scale: 0.97 }}>
+        <motion.div whileHover={shouldReduceMotion ? undefined : { y: -2, scale: 1.01 }} whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}>
           <Link to="/create" className="qf-button qf-button-light">
             Create a Quiz <ArrowUpRight size={18} />
           </Link>

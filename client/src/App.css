@@ -1045,6 +1045,16 @@ textarea:focus {
     scroll-behavior: auto;
   }
 
+  .qf-button:hover,
+  .qf-button:focus-visible,
+  .qf-button:active,
+  .qf-feature-card:hover,
+  .qf-feature-card:active,
+  .qf-step:hover,
+  .qf-step:active {
+    transform: none;
+  }
+
   *,
   *::before,
   *::after {
