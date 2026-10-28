@@ -145,10 +145,11 @@ button {
 button:hover:not(:disabled),
 .cta-link:hover,
 .qf-button:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   border-color: rgba(122, 162, 255, 0.6);
   background: rgba(122, 162, 255, 0.32);
   color: #fff;
+  box-shadow: 0 10px 24px rgba(80, 115, 220, 0.24), 0 0 0 1px rgba(122, 162, 255, 0.12);
 }
 
 button:active:not(:disabled),
@@ -163,8 +164,9 @@ button:disabled {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid #a9c2ff;
   outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(122, 162, 255, 0.2);
 }
 
 .container {
@@ -280,6 +282,13 @@ header p,
   box-shadow: var(--glass-shadow);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
+  transition:
+    translate 220ms ease,
+    transform 220ms ease,
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    scale 160ms ease;
 }
 
 .card {
@@ -922,7 +931,7 @@ textarea:focus {
   border-radius: 18px;
   background: rgba(10, 15, 32, 0.72);
   box-shadow: 0 16px 32px rgba(2, 6, 23, 0.15);
-  transition: transform 220ms ease, background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 220ms ease, translate 220ms ease, scale 160ms ease, background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .qf-feature-card:hover {
@@ -1001,7 +1010,7 @@ textarea:focus {
   position: relative;
   padding-top: 17px;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 220ms ease, translate 220ms ease, scale 160ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .qf-step:hover {
@@ -1216,7 +1225,55 @@ textarea:focus {
   }
 }
 
+@media (hover: hover) {
+  .card:hover,
+  .question-card:hover,
+  .qf-study-preview:hover,
+  .qf-feature-card:hover,
+  .qf-step:hover,
+  .qf-final-cta:hover {
+    translate: 0 -4px;
+    border-color: rgba(122, 162, 255, 0.32);
+    box-shadow: 0 22px 48px rgba(2, 6, 23, 0.28), 0 0 24px rgba(122, 162, 255, 0.12);
+  }
+}
+
+.card:active,
+.question-card:active,
+.qf-study-preview:active,
+.qf-feature-card:active,
+.qf-step:active,
+.qf-final-cta:active {
+  scale: 0.97;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  button:hover:not(:disabled),
+  button:active:not(:disabled),
+  .cta-link:hover,
+  .cta-link:active,
+  .qf-button:hover,
+  .qf-button:active,
+  .card:active,
+  .question-card:active,
+  .qf-study-preview:active,
+  .qf-feature-card:active,
+  .qf-step:active,
+  .qf-final-cta:active {
+    transform: none;
+    translate: none;
+    scale: none;
+  }
+
+  .card:hover,
+  .question-card:hover,
+  .qf-study-preview:hover,
+  .qf-feature-card:hover,
+  .qf-step:hover,
+  .qf-final-cta:hover {
+    translate: none;
+  }
+
   *,
   *::before,
   *::after {
