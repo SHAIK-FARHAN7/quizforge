@@ -24,7 +24,20 @@ export default function Learn() {
   const [error, setError] = useState('');
   const [buildError, setBuildError] = useState('');
   const [progress, setProgress] = useState(() => loadProgress(storageKey));
+  const [partialSeconds, setPartialSeconds] = useState(0);
   const continueStarted = useRef(false);
+  const partialTracking = useRef({ id: null, active: false });
+
+  const updateQuiz = (data) => {
+    const isPartialQuiz = data.status === 'partial';
+    const isNewPartialQuiz =
+      isPartialQuiz && (!partialTracking.current.active || partialTracking.current.id !== id);
+    if (!isPartialQuiz || isNewPartialQuiz) {
+      setPartialSeconds(0);
+    }
+    partialTracking.current = { id, active: isPartialQuiz };
+    setQuiz(data);
+  };
 
   const fetchQuiz = async () => {
     const res = await fetch(`/api/quiz?id=${id}`);
@@ -55,7 +68,7 @@ export default function Learn() {
     let cancelled = false;
     fetchQuiz()
       .then((data) => {
-        if (!cancelled) setQuiz(data);
+        if (!cancelled) updateQuiz(data);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -73,6 +86,12 @@ export default function Learn() {
   const isPartial = quiz && quiz.status === 'partial';
   useEffect(() => {
     if (!isPartial) return undefined;
+    const timer = setInterval(() => setPartialSeconds((seconds) => seconds + 1), 1000);
+    return () => clearInterval(timer);
+  }, [isPartial, id]);
+
+  useEffect(() => {
+    if (!isPartial) return undefined;
     if (!continueStarted.current) {
       continueStarted.current = true;
       startContinue();
@@ -80,7 +99,7 @@ export default function Learn() {
     const timer = setInterval(async () => {
       try {
         const data = await fetchQuiz();
-        setQuiz(data);
+        updateQuiz(data);
       } catch {
         // Try again on the next tick
       }
@@ -186,6 +205,13 @@ export default function Learn() {
         <div className="progress-track">
           <div className="progress-fill" style={{ width: `${(doneCount / total) * 100}%` }}></div>
         </div>
+
+        {!ready && (
+          <p className="wait-note">
+            We are still preparing the rest of your lesson and your test. You can keep reading. This can take up to a minute when the AI is busy.
+            {partialSeconds > 60 && ' Taking longer than usual. Please keep this page open.'}
+          </p>
+        )}
 
         {topic ? (
           <>

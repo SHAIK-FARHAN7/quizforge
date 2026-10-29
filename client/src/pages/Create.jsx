@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getDeviceId } from '../utils/deviceId.js';
 import usePageMeta from '../utils/usePageMeta.js';
@@ -42,7 +42,14 @@ export default function Create() {
   const [tab, setTab] = useState('notes');
   const [texts, setTexts] = useState({ notes: '', topic: '', transcript: '' });
   const [loading, setLoading] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!loading) return undefined;
+    const timer = setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000);
+    return () => clearInterval(timer);
+  }, [loading]);
 
   const config = TABS[tab];
   const value = texts[tab];
@@ -65,6 +72,7 @@ export default function Create() {
       return;
     }
 
+    setElapsedSeconds(0);
     setLoading(true);
     try {
         const sendRequest = async () => {
@@ -124,6 +132,13 @@ export default function Create() {
             <li className="create-loading-step">Building lessons</li>
             <li className="create-loading-step">Preparing your test</li>
           </ul>
+          {elapsedSeconds >= 15 && (
+            <p className="wait-note">
+              {elapsedSeconds >= 40
+                ? 'Still working on it. Thank you for your patience. If nothing happens soon, please try again.'
+                : 'This is taking a little longer than usual because many students are using the AI right now. Please keep this page open, your quiz is on its way.'}
+            </p>
+          )}
         </section>
       ) : (
         <>
