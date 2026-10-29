@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { GEMINI_MODEL, GEMINI_FALLBACK_MODEL } from './config.js';
+import { GEMINI_RACE_MODELS } from './config.js';
 
 // Rules that Gemini must always follow
 const RULES = `You are a friendly tutor for students.
@@ -15,15 +15,6 @@ function getClient() {
     throw new Error('GEMINI_API_KEY is missing');
   }
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-}
-
-function isBusyError(error) {
-  const message = String(error.message || '');
-  return (
-    error.status === 503 ||
-    error.status === 429 ||
-    /UNAVAILABLE|high demand|quota|RESOURCE_EXHAUSTED|503|429/i.test(message)
-  );
 }
 
 function wait(ms) {
@@ -43,57 +34,70 @@ function withTimeout(promise, ms) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-// Sends a prompt to Gemini and returns the JSON answer.
-// Retries with waiting, and switches to a backup model after 2 failures.
+async function callOne(ai, model, prompt, schema, useThinking) {
+  const config = {
+    systemInstruction: RULES,
+    responseMimeType: 'application/json',
+    responseSchema: schema,
+    temperature: 0.4,
+  };
+  if (useThinking) {
+    config.thinkingConfig = { thinkingBudget: 0 };
+  }
+
+  const response = await withTimeout(
+    ai.models.generateContent({ model, contents: prompt, config }),
+    CALL_TIMEOUT_MS
+  );
+  return JSON.parse(response.text);
+}
+
+// Sends a request to all configured models and retries when they all fail.
 async function callGemini(prompt, schema, label = 'call') {
   const ai = getClient();
-  let useThinkingConfig = true;
+  let useThinking = true;
+  let attempt = 1;
 
-  for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
-    const model = attempt % 2 === 1 ? GEMINI_MODEL : GEMINI_FALLBACK_MODEL;
+  async function raceModels() {
+    const startedAt = Date.now();
+    const result = await Promise.any(
+      GEMINI_RACE_MODELS.map((model) =>
+        callOne(ai, model, prompt, schema, useThinking).then((data) => ({ model, data }))
+      )
+    );
+    console.log(
+      `[TIMER] ${label} won by ${result.model}: ${((Date.now() - startedAt) / 1000).toFixed(2)} seconds`
+    );
+    return result.data;
+  }
+
+  while (attempt <= MAX_TRIES) {
     try {
-      const t0 = Date.now();
-      const config = {
-        systemInstruction: RULES,
-        responseMimeType: 'application/json',
-        responseSchema: schema,
-        temperature: 0.4,
-      };
-      if (useThinkingConfig) {
-        config.thinkingConfig = { thinkingBudget: 0 };
-      }
-
-      const response = await withTimeout(
-        ai.models.generateContent({ model, contents: prompt, config }),
-        CALL_TIMEOUT_MS
-      );
-      console.log(`[TIMER] ${label} (${model}, attempt ${attempt}):`, (Date.now() - t0) / 1000, 'seconds');
-      return JSON.parse(response.text);
+      return await raceModels();
     } catch (error) {
-      console.log(`[TIMER] ${label} failed (${model}, attempt ${attempt}):`, error.message);
+      const errors = error instanceof AggregateError ? error.errors : [error];
+      const messages = errors.map((item) => String(item?.message || item));
+      console.log(`[TIMER] ${label} failed:`, messages);
 
-      // If the model does not support thinkingConfig, try again without it
-
-        useThinkingConfig = false;
-        attempt -= 1;
-        continue;           if (useThinkingConfig && /thinking/i.test(String(error.message || ''))) {
+      const unsupportedThinking = errors.some((item) =>
+        item?.status === 400 ||
+        /thinking|INVALID_ARGUMENT/i.test(String(item?.message || item))
+      );
+      if (useThinking && unsupportedThinking) {
+        useThinking = false;
+        continue;
       }
 
-      // Bad JSON from the AI: just try again
-      const retryable =
-        isBusyError(error) || error.code === 'TIMEOUT' || error instanceof SyntaxError;
-      if (retryable) {
-        if (attempt < MAX_TRIES) {
-          await wait(1000 * 2 ** (attempt - 1));
-          continue;
-        }
-        const busyError = new Error('Gemini is busy');
-        busyError.code = 'QUOTA_EXCEEDED';
-        throw busyError;
+      if (attempt < MAX_TRIES) {
+        await wait(1000 * attempt);
       }
-      throw error;
+      attempt += 1;
     }
   }
+
+  const busyError = new Error('Gemini is busy');
+  busyError.code = 'QUOTA_EXCEEDED';
+  throw busyError;
 }
 
 const topicProps = {
