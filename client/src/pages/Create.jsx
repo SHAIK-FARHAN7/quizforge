@@ -44,12 +44,37 @@ export default function Create() {
   const [loading, setLoading] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState('');
+  const [usage, setUsage] = useState(null);
+
+  const fetchUsage = async () => {
+    try {
+      const response = await fetch(`/api/usage?deviceId=${encodeURIComponent(getDeviceId())}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (
+        data &&
+        Number.isFinite(data.left) &&
+        Number.isFinite(data.limit)
+      ) {
+        return { left: data.left, limit: data.limit };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (!loading) return undefined;
     const timer = setInterval(() => setElapsedSeconds((seconds) => seconds + 1), 1000);
     return () => clearInterval(timer);
   }, [loading]);
+
+  useEffect(() => {
+    fetchUsage().then((data) => {
+      if (data) setUsage(data);
+    });
+  }, []);
 
   const config = TABS[tab];
   const value = texts[tab];
@@ -109,6 +134,8 @@ export default function Create() {
         return;
       }
 
+      const currentUsage = await fetchUsage();
+      if (currentUsage) setUsage(currentUsage);
       navigate(`/learn/${data.id}`);
     } catch (err) {
       console.error(err);
@@ -123,6 +150,16 @@ export default function Create() {
       <header>
         <h1>Create a Quiz</h1>
         <p>Add your study material. We will teach you each topic and then test you.</p>
+        {usage && (
+          <div className="usage-summary" aria-live="polite">
+            {usage.left === 0
+              ? 'Daily limit reached. Come back tomorrow.'
+              : `Quizzes left today: ${usage.left} of ${usage.limit}`}
+          </div>
+        )}
+        <p className="muted small usage-reset-note">
+          Limit resets every day at midnight UTC (5:30 AM India time).
+        </p>
       </header>
 
       {loading ? (
@@ -177,7 +214,7 @@ export default function Create() {
 
             {error && <p className="error-text">{error}</p>}
 
-            <button onClick={handleGenerate} disabled={loading}>
+            <button onClick={handleGenerate} disabled={loading || usage?.left === 0}>
               {loading ? 'Creating your quiz... please wait a few seconds' : 'Create Quiz'}
             </button>
           </div>
