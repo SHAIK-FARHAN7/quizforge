@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar.jsx';
 import Footer from './components/Footer.jsx';
+import FeedbackButton from './components/FeedbackButton.jsx';
 import Home from './pages/Home.jsx';
 import Create from './pages/Create.jsx';
 import Quizzes from './pages/Quizzes.jsx';
@@ -44,6 +45,7 @@ export default function App() {
           </Routes>
         </motion.div>
       </AnimatePresence>
+      <FeedbackButton />
       <Footer />
     </>
   );
