@@ -1,10 +1,8 @@
-# QuizForge ⚡
-
-Learn topic by topic, then test yourself. Paste your notes, type a topic, or paste a YouTube transcript, and QuizForge turns it into a short lesson and a timed practice test.
-
-**Live demo:** https://quizforge-neon-nine.vercel.app
-
 ## Screenshots
+
+| Home (top) | Home (more) |
+|---|---|
+| ![Home 1](screenshots/home1.png) | ![Home 2](screenshots/home2.png) |
 
 | Create | Learn |
 |---|---|
